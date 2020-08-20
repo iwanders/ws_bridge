@@ -24,10 +24,10 @@
 import asyncio
 import websockets
 
-try:
-    from asyncio import ensure_future
-except ImportError:
-    from asyncio import async as ensure_future
+if hasattr(asyncio, 'ensure_future'):
+    ensure_future = asyncio.ensure_future
+else:  # Deprecated since Python 3.4.4
+    ensure_future = getattr(asyncio, "async")
 
 class TCPServerToWsClient:
     """
