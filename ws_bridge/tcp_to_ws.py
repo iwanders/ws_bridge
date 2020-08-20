@@ -34,13 +34,14 @@ class TCPServerToWsClient:
         Tcp server, websocket client
     """
     def __init__(self, ws_ip="localhost", ws_port=8001, tcp_ip="localhost",
-                 tcp_port=8000, path="", chunk_size=1024):
+                 tcp_port=8000, path="", chunk_size=1024, text_mode=False):
         self.ws_ip = ws_ip
         self.ws_port = ws_port
         self.tcp_ip = tcp_ip
         self.tcp_port = tcp_port
         self.chunk_size = chunk_size
         self.path = path
+        self.text_mode = text_mode
 
     def server(self):
         return asyncio.start_server(self.handler, self.tcp_ip, self.tcp_port)
@@ -67,6 +68,9 @@ class TCPServerToWsClient:
         try:
             while True:
                 message = yield from reader.read(self.chunk_size)
+                # if the websocket should be text, make it text.
+                if (self.text_mode and type(message) is not str):
+                    message = str(message, 'ascii')
                 if reader.at_eof():
                     break
                 yield from websocket.send(message)
@@ -79,6 +83,9 @@ class TCPServerToWsClient:
         try:
             while True:
                 message = yield from websocket.recv()
+                 # The tcp socket always takes bytes.
+                if (type(message) == str):
+                    message = bytes(message, 'ascii')
                 writer.write(message)
                 yield from writer.drain()
         finally:

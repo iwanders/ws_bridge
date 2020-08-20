@@ -34,12 +34,13 @@ class WsServerToTCPClient:
         Websocket server to tcp client.
     """
     def __init__(self, ws_ip="localhost", ws_port=8001, tcp_ip="localhost",
-                 tcp_port=8000, chunk_size=1024):
+                 tcp_port=8000, chunk_size=1024, text_mode=False):
         self.ws_ip = ws_ip
         self.ws_port = ws_port
         self.tcp_ip = tcp_ip
         self.tcp_port = tcp_port
         self.chunk_size = chunk_size
+        self.text_mode = text_mode
 
 
     def server(self):
@@ -67,6 +68,9 @@ class WsServerToTCPClient:
             while True:
                 try:
                     message = yield from websocket.recv()
+                    # The tcp socket always takes bytes.
+                    if (type(message) is str):
+                        message = bytes(message, 'ascii')
                 except websockets.exceptions.ConnectionClosed as e:
                     break
                 writer.write(message)
@@ -80,6 +84,8 @@ class WsServerToTCPClient:
         try:
             while True:
                 message = yield from reader.read(self.chunk_size)
+                if (self.text_mode and type(message) is not str):
+                    message = str(message, 'ascii')
                 yield from websocket.send(message)
         finally:
             yield from websocket.close()

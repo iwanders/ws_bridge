@@ -31,7 +31,7 @@ from .tcp_to_ws import TCPServerToWsClient
 def run_ws_to_tcp(args):
     z = WsServerToTCPClient(ws_ip=args.ws_host, ws_port=args.ws_port,
                             tcp_ip=args.tcp_address, tcp_port=args.tcp_port,
-                            chunk_size=args.chunk_size)
+                            chunk_size=args.chunk_size, text_mode=args.text_mode)
 
     asyncio.get_event_loop().run_until_complete(z.server())
     asyncio.get_event_loop().run_forever()
@@ -39,7 +39,8 @@ def run_ws_to_tcp(args):
 def run_tcp_to_ws(args):
     z = TCPServerToWsClient(ws_ip=args.ws_address, ws_port=args.ws_port,
                             tcp_ip=args.tcp_host, tcp_port=args.tcp_port,
-                            path=args.ws_path, chunk_size=args.chunk_size)
+                            path=args.ws_path, chunk_size=args.chunk_size,
+                            text_mode=args.text_mode)
 
     asyncio.get_event_loop().run_until_complete(z.server())
     asyncio.get_event_loop().run_forever()
@@ -77,6 +78,9 @@ if __name__ == "__main__":
     ws_to_tcp.add_argument("--chunk-size", default=4096, type=int,
                            help="The chunk size to chunk the stream by."
                                 "(default: %(default)s)")
+    ws_to_tcp.add_argument("--text-mode", action="store_true", default=False,
+                           help="Output text messages to the websocket. "
+                                " Default is binary messages.")
     
 
     tcp_to_ws = subparsers.add_parser("tcp_server_to_ws_client",
@@ -100,6 +104,9 @@ if __name__ == "__main__":
     tcp_to_ws.add_argument("--chunk-size", default=4096, type=int,
                            help="The chunk size to chunk the stream by."
                                 "(default: %(default)s)")
+    tcp_to_ws.add_argument("--text-mode", action="store_true", default=False,
+                           help="Output text messages to the websocket. "
+                                " Default is binary messages.")
 
     args = parser.parse_args()
     if (args.debug):
